@@ -136,3 +136,4 @@ document.getElementById('bookingForm').addEventListener('submit', submitBooking)
 showScreen('welcome');
 
 
+
