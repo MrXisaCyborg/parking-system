@@ -1,158 +1,133 @@
 const users = [];
 let currentUser = null;
-let currentBooking = null;
-let bookings = [];
-
-const parkingLots = [
-  {id:1,name: "Downtown Mall",available:45,total:200,rate:5},
-  {id:2,name: "Airport Parking",available:120,total:500,rate:3},
-  {id:3,name: "City Center",available:8,total:150,rate:8},
-  {id:4,name: "Stadium",available:300,total:800,rate:4}
-];
+const bookings = [];
 
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if(id === 'dashboard') loadParkingLots();
-  else if(id === 'myBookings') renderBookings();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const screen = document.getElementById(id);
+  screen.classList.add('active');
 }
 
+// Register new user
 function registerUser(event) {
   event.preventDefault();
-  const f = event.target;
-  const name = f.name.value.trim();
-  const email = f.email.value.trim();
-  const pass = f.password.value.trim();
-  if(users.find(u=>u.email===email)) return alert('Email already registered');
-  users.push({name,email,pass});
-  alert('Registered successfully. Please login.');
+  const form = event.target;
+  const name = form.name.value.trim();
+  const email = form.email.value.trim();
+  const password = form.password.value.trim();
+
+  if(users.find(u => u.email === email)) {
+    alert('Email already registered');
+    return;
+  }
+  users.push({name, email, password});
+  alert('Registration successful! Please login.');
   showScreen('login');
 }
 
+// Login user
 function loginUser(event) {
   event.preventDefault();
-  const f = event.target;
-  const email = f.email.value.trim();
-  const pass = f.password.value.trim();
-  const user = users.find(u=>u.email===email && u.pass===pass);
-  if(!user) return alert('Invalid credentials');
+  const form = event.target;
+  const email = form.email.value.trim();
+  const password = form.password.value.trim();
+
+  const user = users.find(u => u.email === email && u.password === password);
+  if(!user) {
+    alert('Invalid email or password');
+    return;
+  }
   currentUser = user;
   showScreen('dashboard');
+  renderBookings();
 }
 
-function logout(){
-  currentUser=null;
-  currentBooking=null;
+// Logout user
+function logout() {
+  currentUser = null;
   showScreen('welcome');
 }
 
-function loadParkingLots() {
-  const container = document.getElementById('parkingGrid');
-  container.innerHTML = '';
-  parkingLots.forEach(lot=>{
-    const div = document.createElement('div');
-    div.className = 'parkingCard';
-    div.innerHTML = `
-      <h3>${lot.name}</h3>
-      <p>Available: ${lot.available}/${lot.total}</p>
-      <p>Hourly Rate: $${lot.rate}</p>
-      <button onclick="startBooking(${lot.id})"${lot.available===0?' disabled':''}>Book Now</button>
-    `;
-    container.appendChild(div);
-  });
-}
-
-function startBooking(lotId) {
-  currentBooking = {...parkingLots.find(l=>l.id===lotId)};
-  document.getElementById('selectedLot').innerText = currentBooking.name + ' - $' + currentBooking.rate + '/hour';
-  const f = document.getElementById('bookingForm');
-  f.reset();
-  f.startTime.value = new Date().toISOString().slice(0,16);
-  updateCost();
-  showScreen('booking');
-}
-
-function updateCost() {
-  const duration = +document.getElementById('duration').value;
-  if(!currentBooking) return;
-  const cost = currentBooking.rate * duration;
-  document.getElementById('costCalc').innerText = Total Cost: $${cost.toFixed(2)};
-}
-
-document.getElementById('duration').addEventListener('change', updateCost);
-
-function submitBooking(event){
+// Submit booking form
+function submitBooking(event) {
   event.preventDefault();
-  if(!currentUser) return alert('Please login first');
-  const f = event.target;
-  const vehicleNumber = f.vehicleNumber.value.trim();
-  const vehicleType = f.vehicleType.value;
-  const startTime = f.startTime.value;
-  const duration = +f.duration.value;
-  
-  // Generate unique 8-digit booking code
-  const bookingCode = generateBookingCode();
+
+  if(!currentUser) {
+    alert('Please log in first.');
+    showScreen('login');
+    return;
+  }
+
+  const form = event.target;
+  const mobileNumber = form.mobileNumber.value.trim();
+  const parkingLot = form.parkingLot.value;
+  const vehicleNumber = form.vehicleNumber.value.trim();
+  const vehicleType = form.vehicleType.value;
+  const startTime = form.startTime.value;
+  const duration = form.duration.value;
+
+  if(!/^\d{10}$/.test(mobileNumber)) {
+    alert('Please enter a valid 10-digit mobile number.');
+    return;
+  }
 
   const booking = {
     id: bookings.length + 1,
     userEmail: currentUser.email,
-    lotName: currentBooking.name,
+    mobileNumber,
+    parkingLot,
     vehicleNumber,
     vehicleType,
     startTime,
-    duration,
-    cost: currentBooking.rate * duration,
-    bookingCode
+    duration
   };
+
   bookings.push(booking);
 
   alert('Booking successful!');
   showBookingConfirmation(booking);
-  currentBooking.available--; // reduce availability
+  renderBookings();
 }
 
-function generateBookingCode() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for(let i=0; i<8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
-
-function showBookingConfirmation(booking){
+function showBookingConfirmation(booking) {
   showScreen('confirmation');
   const details = document.getElementById('bookingDetails');
   details.innerHTML = `
-    <p>Parking Lot: ${booking.lotName}</p>
-    <p>Vehicle: ${booking.vehicleNumber} (${booking.vehicleType})</p>
-    <p>Start Time: ${new Date(booking.startTime).toLocaleString()}</p>
-    <p>Duration: ${booking.duration} hours</p>
-    <p>Cost Paid: $${booking.cost.toFixed(2)}</p>
+    <p><strong>Parking Lot:</strong> ${booking.parkingLot}</p>
+    <p><strong>Vehicle Number:</strong> ${booking.vehicleNumber} (${booking.vehicleType})</p>
+    <p><strong>Start Time:</strong> ${new Date(booking.startTime).toLocaleString()}</p>
+    <p><strong>Duration:</strong> ${booking.duration} hours</p>
   `;
-  document.getElementById('bookingCode').innerText = booking.bookingCode;
+  document.getElementById('bookingCode').textContent = booking.mobileNumber;
 }
 
-function copyBookingCode(){
-  const code = document.getElementById('bookingCode').innerText;
+function copyBookingCode() {
+  const code = document.getElementById('bookingCode').textContent;
   navigator.clipboard.writeText(code).then(() => alert('Booking code copied!'));
 }
 
-function renderBookings(){
-  showScreen('myBookings');
-  const list = document.getElementById('bookingsList');
-  list.innerHTML = '';
-  bookings.filter(b=>b.userEmail===currentUser.email).forEach(b=>{
-    const div = document.createElement('div');
-    div.className = 'parkingCard';
-    div.innerHTML = `
-      <h4>${b.lotName}</h4>
-      <p>Vehicle: ${b.vehicleNumber}</p>
-      <p>Start: ${new Date(b.startTime).toLocaleString()}</p>
-      <p>Duration: ${b.duration} hours</p>
-      <p>Booking Code: <strong>${b.bookingCode}</strong> <button onclick="copyCode('${b.bookingCode}')">Copy</button></p>
+function renderBookings() {
+  const container = document.getElementById('bookingsList');
+  container.innerHTML = '';
+
+  const userBookings = bookings.filter(b => b.userEmail === currentUser.email);
+
+  if(userBookings.length===0) {
+    container.innerHTML = '<p>No bookings found.</p>';
+    return;
+  }
+
+  userBookings.forEach(booking => {
+    const card = document.createElement('div');
+    card.className = 'parkingCard fade-in';
+    card.innerHTML = `
+      <h4>${booking.parkingLot}</h4>
+      <p><strong>Vehicle:</strong> ${booking.vehicleNumber}</p>
+      <p><strong>Start:</strong> ${new Date(booking.startTime).toLocaleString()}</p>
+      <p><strong>Duration:</strong> ${booking.duration} hours</p>
+      <p><strong>Booking Code (Mobile):</strong> <span class="booking-code">${booking.mobileNumber}</span> <button class="btn btn-copy" onclick="copyCode('${booking.mobileNumber}')">Copy</button></p>
     `;
-    list.appendChild(div);
+    container.appendChild(card);
   });
 }
 
@@ -160,9 +135,11 @@ function copyCode(code) {
   navigator.clipboard.writeText(code).then(() => alert('Booking code copied!'));
 }
 
+// Event listeners
 document.getElementById('registerForm').addEventListener('submit', registerUser);
 document.getElementById('loginForm').addEventListener('submit', loginUser);
 document.getElementById('bookingForm').addEventListener('submit', submitBooking);
-document.getElementById('duration').addEventListener('change', updateCost);
 
+// Initialize app
 showScreen('welcome');
+
