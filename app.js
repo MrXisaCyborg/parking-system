@@ -4,11 +4,9 @@ const bookings = [];
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const screen = document.getElementById(id);
-  screen.classList.add('active');
+  document.getElementById(id).classList.add('active');
 }
 
-// Register new user
 function registerUser(event) {
   event.preventDefault();
   const form = event.target;
@@ -25,7 +23,6 @@ function registerUser(event) {
   showScreen('login');
 }
 
-// Login user
 function loginUser(event) {
   event.preventDefault();
   const form = event.target;
@@ -42,16 +39,13 @@ function loginUser(event) {
   renderBookings();
 }
 
-// Logout user
 function logout() {
   currentUser = null;
   showScreen('welcome');
 }
 
-// Submit booking form
 function submitBooking(event) {
   event.preventDefault();
-
   if(!currentUser) {
     alert('Please log in first.');
     showScreen('login');
@@ -112,7 +106,7 @@ function renderBookings() {
 
   const userBookings = bookings.filter(b => b.userEmail === currentUser.email);
 
-  if(userBookings.length===0) {
+  if(userBookings.length === 0) {
     container.innerHTML = '<p>No bookings found.</p>';
     return;
   }
@@ -135,11 +129,10 @@ function copyCode(code) {
   navigator.clipboard.writeText(code).then(() => alert('Booking code copied!'));
 }
 
-// Event listeners
 document.getElementById('registerForm').addEventListener('submit', registerUser);
 document.getElementById('loginForm').addEventListener('submit', loginUser);
 document.getElementById('bookingForm').addEventListener('submit', submitBooking);
 
-// Initialize app
 showScreen('welcome');
+
 
