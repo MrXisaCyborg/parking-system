@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ParkEasy - Parking Reservation with Dashboard</title>
+<title>ParkEasy - Polished Parking Reservation</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -54,7 +54,7 @@
   <div id="booking" class="screen fade-in">
     <h2>Book Parking Spot</h2>
     <form id="bookingForm">
-      <label>Mobile Number (no country code): <input name="mobileNumber" type="tel" pattern="\\d{10}" title="Enter 10-digit mobile number" required /></label><br />
+      <label>Mobile Number (no country code): <input name="mobileNumber" type="tel" pattern="\\d{10}" title="Enter 10-digit mobile number without country code" required /></label><br />
       <label>Parking Lot:
         <select name="parkingLot" required>
           <option value="">Select Lot</option>
@@ -103,8 +103,8 @@
     <button class="btn btn-secondary" onclick="showScreen('booking')">Book Another Spot</button>
   </div>
 </div>
-
 <script src="app.js"></script>
 </body>
 </html>
+
 
